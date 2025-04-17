@@ -27,7 +27,7 @@ func main() {
 	defer mongoClient.Disconnect(context.TODO())
 	log.Info().Str("db", cfg.Mongo.DBName).Msg("Conectado ao MongoDB")
 
-	r := server.NewRouter(cfg, log)
+	r := server.NewRouter(cfg, log, mongoClient)
 
 	addr := fmt.Sprintf(":%d", cfg.App.Port)
 	log.Info().Str("addr", addr).Msg("Servidor iniciado")

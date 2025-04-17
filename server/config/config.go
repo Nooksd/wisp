@@ -13,6 +13,9 @@ type Config struct {
 		URI    string
 		DBName string
 	}
+	Jwt struct {
+		Secret string
+	}
 	CORS struct {
 		AllowOrigins []string
 		AllowMethods []string
