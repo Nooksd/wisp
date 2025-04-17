@@ -1,0 +1,21 @@
+app:
+  port:
+  env:
+
+mongo:
+  uri:
+  dbName:
+
+cors:
+  allowOrigins:
+    - "http://"
+    - "https://"
+  allowMethods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+  allowHeaders:
+    - "Origin"
+    - "Content-Type"
+    - "Authorization"
