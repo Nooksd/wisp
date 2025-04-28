@@ -9,8 +9,12 @@ import (
 func UserRoutes(secure *gin.RouterGroup, public *gin.RouterGroup, h *handler.UserHandler) {
 	public.GET("/check", h.CheckAvailability)
 	secure.GET("/me", h.GetProfile)
-	secure.GET("/users", h.ListUsers)
-	secure.GET("/users/:userId", h.GetUser)
-	secure.PUT("/users/:userId", h.UpdateUser)
-	secure.DELETE("/users/:userId", h.DeleteUser)
+
+	users := secure.Group("/users")
+	{
+		users.GET("", h.ListUsers)
+		users.GET("/:userId", h.GetUser)
+		users.PUT("/:userId", h.UpdateUser)
+		users.DELETE("/:userId", h.DeleteUser)
+	}
 }

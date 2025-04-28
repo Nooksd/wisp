@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Wisp Chat</title>
+  </head>
+  <body>
+    <div class="container">
+      <div id="contacts-page">
+        <h1>Contatos</h1>
+        <div class="contact-list" id="contact-list"></div>
+      </div>
+
+      <div id="chat-page" style="display: none">
+        <div class="chat-container">
+          <div class="chat-header">
+            <span class="back-button" onclick="showContactsPage()">←</span>
+            <span id="chat-title">Nome do Contato</span>
+          </div>
+          <div class="message-container" id="messages"></div>
+          <div class="input-container">
+            <input
+              type="text"
+              id="message-input"
+              placeholder="Digite uma mensagem..."
+            />
+            <button id="send-button">Enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

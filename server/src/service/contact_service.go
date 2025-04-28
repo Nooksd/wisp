@@ -37,19 +37,14 @@ func NewContactService(
 	}
 }
 
-func (s *ContactService) GetContacts(ctx context.Context, userUID string) ([]map[string]interface{}, error) {
-	me, err := s.userRepo.FindByUserID(ctx, userUID)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *ContactService) GetContacts(ctx context.Context, userUID string) ([]map[string]any, error) {
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{"ownerId": me.ID}}},
+		{{Key: "$match", Value: bson.M{"ownerId": userUID}}},
 		{{Key: "$unwind", Value: "$contactIds"}},
 		{{Key: "$lookup", Value: bson.M{
 			"from":         "users",
 			"localField":   "contactIds",
-			"foreignField": "_id",
+			"foreignField": "userId",
 			"as":           "user",
 		}}},
 		{{Key: "$unwind", Value: "$user"}},
@@ -68,9 +63,9 @@ func (s *ContactService) GetContacts(ctx context.Context, userUID string) ([]map
 	}
 	defer cur.Close(ctx)
 
-	var results []map[string]interface{}
+	var results []map[string]any
 	for cur.Next(ctx) {
-		var doc map[string]interface{}
+		var doc map[string]any
 		cur.Decode(&doc)
 		results = append(results, doc)
 	}
@@ -79,32 +74,20 @@ func (s *ContactService) GetContacts(ctx context.Context, userUID string) ([]map
 }
 
 func (s *ContactService) GetIncomingRequests(ctx context.Context, userUID string) ([]model.FriendRequest, error) {
-	me, err := s.userRepo.FindByUserID(ctx, userUID)
-	if err != nil {
-		return nil, err
-	}
-	return s.frRepo.GetIncoming(ctx, me.UserID)
+	return s.frRepo.GetIncoming(ctx, userUID)
 }
 
 func (s *ContactService) GetSentRequests(ctx context.Context, userUID string) ([]model.FriendRequest, error) {
-	me, err := s.userRepo.FindByUserID(ctx, userUID)
-	if err != nil {
-		return nil, err
-	}
-	return s.frRepo.GetSent(ctx, me.UserID)
+	return s.frRepo.GetSent(ctx, userUID)
 }
 
 func (s *ContactService) SendFriendRequest(ctx context.Context, fromUID, toUID string) (primitive.ObjectID, error) {
-	from, err := s.userRepo.FindByUserID(ctx, fromUID)
-	if err != nil {
-		return primitive.NilObjectID, err
-	}
 	to, err := s.userRepo.FindByUserID(ctx, toUID)
 	if err != nil {
 		return primitive.NilObjectID, errors.New("usuário alvo não existe")
 	}
 
-	return s.frRepo.Create(ctx, from.UserID, to.UserID)
+	return s.frRepo.Create(ctx, fromUID, to.UserID)
 }
 
 func (s *ContactService) CancelFriendRequest(ctx context.Context, reqID string, userUID string) error {

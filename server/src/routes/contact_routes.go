@@ -7,12 +7,15 @@ import (
 )
 
 func ContactRoutes(secure *gin.RouterGroup, h *handler.ContactHandler) {
-	secure.GET("/contacts", h.GetContacts)
-	secure.GET("/contacts/requests", h.GetIncoming)
-	secure.GET("/contacts/requests/sent", h.GetSent)
-	secure.POST("/contacts/requests", h.SendRequest)
-	secure.DELETE("/contacts/requests/:id", h.CancelRequest)
-	secure.POST("/contacts/requests/:id/accept", h.AcceptRequest)
-	secure.POST("/contacts/requests/:id/reject", h.RejectRequest)
-	secure.DELETE("/contacts/:id", h.RemoveContact)
+	contacts := secure.Group("/contacts")
+	{
+		contacts.GET("", h.GetContacts)
+		contacts.GET("/requests", h.GetIncoming)
+		contacts.GET("/requests/sent", h.GetSent)
+		contacts.POST("/requests", h.SendRequest)
+		contacts.DELETE("/requests/:id", h.CancelRequest)
+		contacts.POST("/requests/:id/accept", h.AcceptRequest)
+		contacts.POST("/requests/:id/reject", h.RejectRequest)
+		contacts.DELETE("/:id", h.RemoveContact)
+	}
 }

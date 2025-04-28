@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"wisp/src/model"
 	"wisp/src/repository"
@@ -40,11 +41,15 @@ func (s *UserService) Register(ctx context.Context, req model.RegisterRequest) (
 	}
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	now := time.Now()
 	u := &model.User{
 		Name:         req.Name,
 		Email:        req.Email,
 		UserID:       req.UserID,
 		PasswordHash: string(hash),
+		IsAdmin:      false,
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 
 	if err := s.repo.Create(ctx, u); err != nil {
@@ -65,7 +70,7 @@ func (s *UserService) GetUser(ctx context.Context, userID string) (*model.User, 
 	return s.repo.FindByUserID(ctx, userID)
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, userID string, upd map[string]interface{}) error {
+func (s *UserService) UpdateUser(ctx context.Context, userID string, upd map[string]any) error {
 	return s.repo.UpdateByUserID(ctx, userID, upd)
 }
 

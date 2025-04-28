@@ -12,15 +12,17 @@ import (
 func JWTAuth(authSvc *service.AuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		h := c.GetHeader("Authorization")
-		if h == "" {
-			h, _ = c.Cookie("token")
+		var tokenStr string
+
+		if h != "" || strings.HasPrefix(h, "Bearer ") {
+			tokenStr = strings.TrimPrefix(h, "Bearer ")
+		} else {
+			if tokenStr = c.Query("token"); tokenStr == "" {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token ausente"})
+				return
+			}
 		}
 
-		if h == "" || !strings.HasPrefix(h, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token ausente"})
-			return
-		}
-		tokenStr := strings.TrimPrefix(h, "Bearer ")
 		claims, err := authSvc.ValidateToken(tokenStr)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})

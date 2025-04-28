@@ -8,6 +8,7 @@ import (
 	"wisp/src/repository"
 	"wisp/src/routes"
 	"wisp/src/service"
+	"wisp/src/ws"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -33,25 +34,40 @@ func NewRouter(cfg *config.Config, logger zerolog.Logger, mongoClient *mongo.Cli
 	}
 	r.Use(cors.New(corsCfg))
 
-	userRepo := repository.NewUserRepo(mongoClient.Database(cfg.Mongo.DBName))
+	db := mongoClient.Database(cfg.Mongo.DBName)
+
+	// Repositórios
+	userRepo := repository.NewUserRepo(db)
+	contactRepo := repository.NewContactRepo(db)
+	frRepo := repository.NewFriendRequestRepo(db)
+	msgRepo := repository.NewMessageRepo(db)
+
+	// Serviços
 	userSvc := service.NewUserService(userRepo)
-	authSvc := service.NewAuthService(mongoClient.Database(cfg.Mongo.DBName), cfg)
+	authSvc := service.NewAuthService(db, cfg)
+	contactSvc := service.NewContactService(userRepo, contactRepo, frRepo, db)
 
-	contactRepo := repository.NewContactRepo(mongoClient.Database(cfg.Mongo.DBName))
-	frRepo := repository.NewFriendRequestRepo(mongoClient.Database(cfg.Mongo.DBName))
-	contactSvc := service.NewContactService(userRepo, contactRepo, frRepo, mongoClient.Database(cfg.Mongo.DBName))
-
+	// Handlers
 	authHandler := handler.NewAuthHandler(authSvc, userSvc)
 	userHandler := handler.NewUserHandler(userSvc)
 	contactHandler := handler.NewContactHandler(contactSvc)
+
+	// WebSocket Hub
+	hub := ws.NewHub(msgRepo)
+	go hub.Run() // Inicia o hub em uma goroutine separada
+
+	// WebSocket Handler
+	wsHandler := handler.NewWSHandler(hub)
 
 	public := r.Group("/")
 	secure := r.Group("/")
 	secure.Use(middleware.JWTAuth(authSvc))
 
+	// Configuração das rotas
 	routes.UserRoutes(secure, public, userHandler)
 	routes.AuthRoutes(secure, public, authHandler)
 	routes.ContactRoutes(secure, contactHandler)
+	routes.WSRoutes(secure, wsHandler)
 
 	return r
 }
